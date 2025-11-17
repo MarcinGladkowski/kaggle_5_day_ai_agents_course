@@ -1,4 +1,7 @@
 from google.adk.agents.llm_agent import LlmAgent
+from google.adk.tools import AgentTool
+
+from .agents.code_execution_agent import calculation_agent
 
 def get_exchange_rate(base_currency: str, target_currency: str) -> dict:
     """Looks up and returns the exchange rate between two currencies.
@@ -82,25 +85,34 @@ print(f"💳 Test: {get_fee_for_payment_method('platinum credit card')}")
 
 
 root_agent = LlmAgent(
-    name="currency_agent",
+    name="enhanced_currency_agent",
     model="gemini-2.5-flash-lite",
-    instruction="""You are a smart currency conversion assistant.
+    # Updated instruction
+    instruction="""You are a smart currency conversion assistant. You must strictly follow these steps and use the available tools.
 
-    For currency conversion requests:
-    1. Use `get_fee_for_payment_method()` to find transaction fees
-    2. Use `get_exchange_rate()` to get currency conversion rates
-    3. Check the "status" field in each tool's response for errors
-    4. Calculate the final amount after fees based on the output from `get_fee_for_payment_method` and `get_exchange_rate` methods and provide a clear breakdown.
-    5. First, state the final converted amount.
-        Then, explain how you got that result by showing the intermediate amounts. Your explanation must include: the fee percentage and its
-        value in the original currency, the amount remaining after the fee, and the exchange rate used for the final conversion.
+  For any currency conversion request:
 
-    If any tool returns status "error", explain the issue to the user clearly.
+   1. Get Transaction Fee: Use the get_fee_for_payment_method() tool to determine the transaction fee.
+   2. Get Exchange Rate: Use the get_exchange_rate() tool to get the currency conversion rate.
+   3. Error Check: After each tool call, you must check the "status" field in the response. If the status is "error", you must stop and clearly explain the issue to the user.
+   4. Calculate Final Amount (CRITICAL): You are strictly prohibited from performing any arithmetic calculations yourself. You must use the calculation_agent tool to generate Python code that calculates the final converted amount. This 
+      code will use the fee information from step 1 and the exchange rate from step 2.
+   5. Provide Detailed Breakdown: In your summary, you must:
+       * State the final converted amount.
+       * Explain how the result was calculated, including:
+           * The fee percentage and the fee amount in the original currency.
+           * The amount remaining after deducting the fee.
+           * The exchange rate applied.
     """,
-    tools=[get_fee_for_payment_method, get_exchange_rate],
+    tools=[
+        get_fee_for_payment_method,
+        get_exchange_rate,
+        AgentTool(agent=calculation_agent),  # Using another agent as a tool!
+    ],
 )
 
-print("✅ Currency agent created with custom function tools")
-print("🔧 Available tools:")
-print("  • get_fee_for_payment_method - Looks up company fee structure")
-print("  • get_exchange_rate - Gets current exchange rates")
+print("✅ Enhanced currency agent created")
+print("🎯 New capability: Delegates calculations to specialist agent")
+print("🔧 Tool types used:")
+print("  • Function Tools (fees, rates)")
+print("  • Agent Tool (calculation specialist)")
