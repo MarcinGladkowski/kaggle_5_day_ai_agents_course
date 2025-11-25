@@ -1,6 +1,6 @@
 from google.adk.agents.llm_agent import Agent
 from google.adk.runners import Runner
-from google.adk.sessions import InMemorySessionService
+from google.adk.sessions import DatabaseSessionService
 
 APP_NAME = "default"  # Application
 USER_ID = "default"  # User
@@ -18,7 +18,12 @@ root_agent = Agent(
 
 # Step 2: Set up Session Management
 # InMemorySessionService stores conversations in RAM (temporary)
-session_service = InMemorySessionService()
+# session_service = InMemorySessionService() # replace this with DatabaseSessionService uses a sqllite database
+
+# Step 2: Switch to DatabaseSessionService
+# SQLite database will be created automatically
+db_url = "sqlite:///my_agent_data.db"  # Local SQLite file
+session_service = DatabaseSessionService(db_url=db_url)
 
 # Step 3: Create the Runner
 runner = Runner(agent=root_agent, app_name=APP_NAME, session_service=session_service)
