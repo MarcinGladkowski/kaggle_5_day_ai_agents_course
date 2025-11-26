@@ -1,5 +1,12 @@
 from .libraries import *
 
+
+async def auto_save_to_memory(callback_context):
+    """Automatically save session to memory after each agent turn."""
+    await callback_context._invocation_context.memory_service.add_session_to_memory(
+        callback_context._invocation_context.session
+    )
+
 memory_service = (
     InMemoryMemoryService()
 )  # ADK's built-in Memory Service for development and testing
@@ -16,6 +23,7 @@ user_agent = LlmAgent(
     tools=[
         load_memory
     ],  # Agent now has access to Memory and can search it whenever it decides to!
+    after_agent_callback=auto_save_to_memory,  # Automatically save session to memory after each turn
 )
 
 print("✅ Agent created")

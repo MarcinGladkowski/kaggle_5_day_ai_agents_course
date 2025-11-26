@@ -44,12 +44,10 @@ for event in session.events:
     )
     print(f"  {event.content.role}: {text}...")
     
-# This is the key method!
-asyncio.run(memory_service.add_session_to_memory(session))
-print("✅ Session added to memory!")
 
 # new session where agent should recall from memory
-asyncio.run(run_session(  app_name=APP_NAME,
+asyncio.run(run_session(
+    app_name=APP_NAME,
     user_id=USER_ID,
     session_service=session_service,
     runner_instance=runner,
